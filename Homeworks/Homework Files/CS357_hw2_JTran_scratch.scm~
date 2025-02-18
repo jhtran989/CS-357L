@@ -1,0 +1,99 @@
+;; CS 357L - Homework 2
+;;
+;; John Tran
+;; UNM ID: 101821704
+;;
+;; 2/18/2022
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Define a function deepen-n that takes two parameters, ls and n. This function should wrap n pairs of parens around each top level element in ls
+
+;; For example:
+;;– (deepen-n ’() 10) => ()
+;;– (deepen-n ’(1 2 3 4 5) 0) => (1 2 3 4 5)
+;;– (deepen-n ’(1 2 3 4 5) 1) => ((1) (2) (3) (4) (5))
+;;– (deepen-n ’(1 2 3 4 5) 2) => (((1)) ((2)) ((3)) ((4)) ((5)))
+;;– (deepen-n ’(1 2 3 4 5) 3) => ((((1))) (((2))) (((3))) (((4))) (((5))))
+;;– (deepen-n ’((1 2) (3 4) ((5) 6)) 2) => ((((1 2))) (((3 4))) ((((5) 6))))
+
+;; original attempt - worked, just needed the extra lambda below to give it the value of n
+;(define deepen-element
+;  (lambda (element n)
+;    (cond
+;      ((zero? n)
+;       element)
+;      (else
+;       (deepen-element (cons element '()) (- n 1))))))
+
+;; trying nested lambdas to try and feed a function with only 1 arg into map
+;(define deepen-element
+;  (lambda (n)
+;    (lambda (element n)
+;      (cond
+;        ((zero? n)
+;         element)
+;        (else
+;         (deepen-element (cons element '()) (- n 1)))))))
+
+;; tried with just the first element of each sublist instead...just for fun
+;; actually, made a roundabout way to just get the car of the first element n times, which is the same of getting the car once...
+;(define deepen-element
+;  (lambda (ls n)
+;    (cond
+;      ((zero? n)
+;       (car ls))
+;      (else
+;       (deepen-element (cons (car ls) '()) (- n 1))))))
+
+;; now this works in only enclosing the first element of each sublist with the specified n pairs of parens -- sort of roundabout since only the first intial case is special (enclose first element in parens, and just add parens afterwards)
+;(define deepen-element
+;  (lambda (ls n)
+;    (cond
+;      ((zero? n)
+;       (car ls))
+;      (else
+;       (deepen-element (cons (cons (car ls) '()) '()) (- n 1))))))
+
+(define atom?
+  (lambda (x)
+    (and (not (pair? x))
+         (not (null? x)))))
+
+;; move null check to first-element to also enclose empty list too...
+(define deepen-element-helper
+  (lambda (ls n first-element-flag)
+    (cond
+      ((zero? n)
+       ls)
+      (first-element-flag
+       (if (or (atom? ls)
+               (null? '()))
+           (deepen-element-helper (cons ls '()) (- n 1) #f)
+           (deepen-element-helper (cons (car ls) '()) (- n 1) #f)))
+      (else
+       (deepen-element-helper (cons ls '()) (- n 1) first-element-flag)))))
+
+(define deepen-element
+  (lambda (ls n)
+    (deepen-element-helper ls n #t)))
+
+(define deepen-n
+  (lambda (ls n)
+    (cond
+      ((null? ls)
+       '())
+      (else
+       (map (lambda (element)
+              (deepen-element element n)) ls)))))
+
+;(deepen-n '() 10)
+;(deepen-n '(1 2 3 4 5) 0)
+;(deepen-n '(1 2 3 4 5) 1)
+;(deepen-n '(1 2 3 4 5) 2)
+;(deepen-n '(1 2 3 4 5) 3)
+;(deepen-n '((1 2) (3 4) ((5) 6)) 4)
+
+(deepen-n '((1 2) (3 4) ((5) 6) () 8 9) 4)
+(cons '() '())
+
